@@ -1,21 +1,74 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import css from "../src/App.module.css";
+import { useEffect, useState } from "react";
+import {
+  getChats,
+  getMessages,
+  sendMessage,
+  getLastMessageForChat, // ✅ import this
+} from "./api/api";
 
-function App() {
-  const [count, setCount] = useState(0);
+import ChatList from "./components/ChatList/ChatList";
+import ChatWindow from "./components/ChatWindow/ChatWindow";
+import styles from "./App.module.css";
+
+export default function App() {
+  const [chats, setChats] = useState([]);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [lastMap, setLastMap] = useState({}); // ✅ map of chatId -> lastMessage
+
+  useEffect(() => {
+    (async () => {
+      const { data: chatsData } = await getChats();
+      setChats(chatsData);
+
+      const lastMessagesArr = await Promise.all(
+        chatsData.map(async (c) => {
+          try {
+            const last = await getLastMessageForChat(c._id);
+            return { chatId: c._id, last };
+          } catch (err) {
+            console.warn("Error loading last message:", err);
+            return { chatId: c._id, last: null };
+          }
+        })
+      );
+
+      const map = {};
+      lastMessagesArr.forEach(({ chatId, last }) => {
+        if (last) map[chatId] = last;
+      });
+      setLastMap(map);
+    })();
+  }, []);
+
+  const handleSelectChat = async (chat) => {
+    setSelectedChat(chat);
+    const { data } = await getMessages(chat._id);
+    setMessages(data);
+  };
+
+  const handleSendMessage = async (text) => {
+    if (!selectedChat) return;
+
+    const { data } = await sendMessage({ chatId: selectedChat._id, text });
+    setMessages((prev) => [...prev, data]);
+
+    setLastMap((prev) => ({ ...prev, [selectedChat._id]: data }));
+  };
 
   return (
-    <div className={css.container}>
-      <h1>Vite + React</h1>
-      <div className={css.card}>
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-      </div>
+    <div className={styles.app}>
+      <ChatList
+        chats={chats}
+        messagesLastMap={lastMap}
+        onSelectChat={handleSelectChat}
+        selectedChat={selectedChat}
+      />
+      <ChatWindow
+        chat={selectedChat}
+        messages={messages}
+        onSendMessage={handleSendMessage}
+      />
     </div>
   );
 }
-
-export default App;
