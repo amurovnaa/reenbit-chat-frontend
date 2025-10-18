@@ -1,74 +1,138 @@
 import { useEffect, useState } from "react";
-import {
-  getChats,
-  getMessages,
-  sendMessage,
-  getLastMessageForChat, // ✅ import this
-} from "./api/api";
-
+import { useDispatch, useSelector } from "react-redux";
 import ChatList from "./components/ChatList/ChatList";
 import ChatWindow from "./components/ChatWindow/ChatWindow";
 import styles from "./App.module.css";
 
+import {
+  selectChats,
+  selectChatsLoading,
+  selectSelectedChat,
+} from "./redux/chats/selectors.js";
+import { selectMessagesByChat } from "./redux/messages/selectors.js";
+import { selectChat, updateLastMessage } from "./redux/chats/slice.js";
+import {
+  fetchMessages,
+  sendMessageThunk,
+} from "./redux/messages/operations.js";
+import {
+  createChatThunk,
+  deleteChatThunk,
+  fetchChats,
+  updateChatThunk,
+} from "./redux/chats/operations.js";
+import ChatFuncModal from "./components/ChatFuncModal/ChatFuncModal.jsx";
+import { addMessageToChat } from "./redux/messages/slice.js";
+import { socket } from "./api/api.js";
+import toast, { Toaster } from "react-hot-toast";
+
 export default function App() {
-  const [chats, setChats] = useState([]);
-  const [selectedChat, setSelectedChat] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [lastMap, setLastMap] = useState({}); // ✅ map of chatId -> lastMessage
+  const dispatch = useDispatch();
+
+  const chats = useSelector(selectChats);
+  const selectedChat = useSelector(selectSelectedChat);
+  const isLoading = useSelector(selectChatsLoading);
+  const messagesByChatSelector = selectMessagesByChat(selectedChat?._id || "");
+  const messagesByChat = useSelector(messagesByChatSelector);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingChat, setEditingChat] = useState(null);
 
   useEffect(() => {
-    (async () => {
-      const { data: chatsData } = await getChats();
-      setChats(chatsData);
+    dispatch(fetchChats());
+  }, [dispatch]);
 
-      const lastMessagesArr = await Promise.all(
-        chatsData.map(async (c) => {
-          try {
-            const last = await getLastMessageForChat(c._id);
-            return { chatId: c._id, last };
-          } catch (err) {
-            console.warn("Error loading last message:", err);
-            return { chatId: c._id, last: null };
-          }
-        })
-      );
+  useEffect(() => {
+    const handleNewMessage = ({ chatId, message }) => {
+      dispatch(addMessageToChat({ chatId, message }));
 
-      const map = {};
-      lastMessagesArr.forEach(({ chatId, last }) => {
-        if (last) map[chatId] = last;
-      });
-      setLastMap(map);
-    })();
-  }, []);
+      dispatch(updateLastMessage({ chatId, message }));
 
-  const handleSelectChat = async (chat) => {
-    setSelectedChat(chat);
-    const { data } = await getMessages(chat._id);
-    setMessages(data);
-  };
+      if (!selectedChat || selectedChat._id !== chatId) {
+        const chat = chats.find((c) => c._id === chatId);
+        const chatName = chat
+          ? `${chat.firstName} ${chat.lastName}`
+          : "Unknown Chat";
 
-  const handleSendMessage = async (text) => {
+        toast(`${chatName}: ${message.text}`, { duration: 5000 });
+      }
+    };
+
+    socket.on("newMessage", handleNewMessage);
+    return () => socket.off("newMessage", handleNewMessage);
+  }, [dispatch, selectedChat]);
+
+  const handleSendMessage = (text) => {
     if (!selectedChat) return;
 
-    const { data } = await sendMessage({ chatId: selectedChat._id, text });
-    setMessages((prev) => [...prev, data]);
-
-    setLastMap((prev) => ({ ...prev, [selectedChat._id]: data }));
+    const tempMessage = {
+      _id: Date.now().toString(),
+      chatId: selectedChat._id,
+      sender: "user",
+      text,
+      createdAt: new Date().toISOString(),
+    };
+    dispatch(
+      addMessageToChat({ chatId: selectedChat._id, message: tempMessage })
+    );
+    dispatch(sendMessageThunk({ chatId: selectedChat._id, text }));
   };
 
+  const handleSelectChat = (chat) => {
+    dispatch(selectChat(chat));
+    dispatch(fetchMessages(chat._id));
+  };
+
+  const handleCreate = () => {
+    setEditingChat(null);
+    setModalOpen(true);
+  };
+
+  const handleEdit = (chat) => {
+    setEditingChat(chat);
+    setModalOpen(true);
+  };
+
+  const handleDelete = (id) => {
+    dispatch(deleteChatThunk(id));
+  };
+
+  const handleModalSubmit = ({ firstName, lastName }) => {
+    if (editingChat) {
+      dispatch(updateChatThunk({ id: editingChat._id, firstName, lastName }));
+    } else {
+      dispatch(createChatThunk({ firstName, lastName }));
+    }
+    setModalOpen(false);
+  };
+
+  if (isLoading) return <p>Loading chats...</p>;
+
   return (
-    <div className={styles.app}>
+    <section className={styles.app}>
+      <Toaster position="top-center" />
+
       <ChatList
         chats={chats}
-        messagesLastMap={lastMap}
         onSelectChat={handleSelectChat}
         selectedChat={selectedChat}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onCreate={handleCreate}
       />
+
       <ChatWindow
         chat={selectedChat}
-        messages={messages}
+        messages={messagesByChat || []}
         onSendMessage={handleSendMessage}
       />
-    </div>
+
+      <ChatFuncModal
+        isOpen={modalOpen}
+        chat={editingChat}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleModalSubmit}
+      />
+    </section>
   );
 }

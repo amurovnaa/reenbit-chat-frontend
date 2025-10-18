@@ -22,7 +22,7 @@ const MessageForm = ({ onSend }) => {
         className={styles.input}
       />
       <button type="submit" className={styles.button}>
-        ➤
+        Submit
       </button>
     </form>
   );

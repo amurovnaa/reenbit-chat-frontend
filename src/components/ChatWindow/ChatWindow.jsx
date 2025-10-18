@@ -9,8 +9,20 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
   return (
     <div className={styles.chatWindow}>
       <div className={styles.header}>
-        <img src={chat.avatar} alt={chat.name} className={styles.avatar} />
-        <h3>{chat.name}</h3>
+        {chat.avatar ? (
+          <img
+            src={chat.avatar}
+            alt={chat.firstName}
+            className={styles.avatar}
+          />
+        ) : (
+          <div className={styles.avatarPlaceholder}>
+            {chat.firstName?.[0].toUpperCase() || "?"}
+          </div>
+        )}
+        <h3 className={styles.name}>
+          {[chat.firstName, chat.lastName].filter(Boolean).join(" ")}
+        </h3>
       </div>
 
       <ul className={styles.messages}>
