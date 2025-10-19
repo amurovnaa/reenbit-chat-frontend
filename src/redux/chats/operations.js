@@ -22,16 +22,16 @@ export const fetchChats = createAsyncThunk("chats/fetchAll", async () => {
 
 export const createChatThunk = createAsyncThunk(
   "chats/create",
-  async ({ firstName, lastName }) => {
-    const { data } = await createChat({ firstName, lastName });
+  async (formData) => {
+    const { data } = await createChat(formData);
     return data;
   }
 );
 
 export const updateChatThunk = createAsyncThunk(
   "chats/update",
-  async ({ id, firstName, lastName }) => {
-    const { data } = await updateChat(id, { firstName, lastName });
+  async ({ id, formData }) => {
+    const { data } = await updateChat(id, formData);
     return data;
   }
 );

@@ -45,7 +45,6 @@ export default function App() {
   useEffect(() => {
     const handleNewMessage = ({ chatId, message }) => {
       dispatch(addMessageToChat({ chatId, message }));
-
       dispatch(updateLastMessage({ chatId, message }));
 
       if (!selectedChat || selectedChat._id !== chatId) {
@@ -53,18 +52,16 @@ export default function App() {
         const chatName = chat
           ? `${chat.firstName} ${chat.lastName}`
           : "Unknown Chat";
-
         toast(`${chatName}: ${message.text}`, { duration: 5000 });
       }
     };
 
     socket.on("newMessage", handleNewMessage);
     return () => socket.off("newMessage", handleNewMessage);
-  }, [dispatch, selectedChat]);
+  }, [dispatch, selectedChat, chats]);
 
   const handleSendMessage = (text) => {
     if (!selectedChat) return;
-
     const tempMessage = {
       _id: Date.now().toString(),
       chatId: selectedChat._id,
@@ -83,7 +80,7 @@ export default function App() {
     dispatch(fetchMessages(chat._id));
   };
 
-  const handleCreate = () => {
+  const openCreateModal = () => {
     setEditingChat(null);
     setModalOpen(true);
   };
@@ -93,17 +90,17 @@ export default function App() {
     setModalOpen(true);
   };
 
-  const handleDelete = (id) => {
-    dispatch(deleteChatThunk(id));
-  };
-
-  const handleModalSubmit = ({ firstName, lastName }) => {
-    if (editingChat) {
-      dispatch(updateChatThunk({ id: editingChat._id, firstName, lastName }));
+  const handleModalSubmit = (formData) => {
+    if (editingChat && editingChat._id) {
+      dispatch(updateChatThunk({ id: editingChat._id, formData }));
     } else {
-      dispatch(createChatThunk({ firstName, lastName }));
+      dispatch(createChatThunk(formData));
     }
     setModalOpen(false);
+  };
+
+  const handleDelete = (id) => {
+    dispatch(deleteChatThunk(id));
   };
 
   if (isLoading) return <p>Loading chats...</p>;
@@ -118,7 +115,7 @@ export default function App() {
         selectedChat={selectedChat}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        onCreate={handleCreate}
+        onCreate={openCreateModal}
       />
 
       <ChatWindow

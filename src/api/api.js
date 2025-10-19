@@ -9,8 +9,8 @@ const api = axios.create({
 
 // CHATS
 export const getChats = () => api.get("/chats");
-export const createChat = (chatData) => api.post("/chats", chatData);
-export const updateChat = (id, chatData) => api.put(`/chats/${id}`, chatData);
+export const createChat = (formData) => api.post("/chats", formData);
+export const updateChat = (id, formData) => api.put(`/chats/${id}`, formData);
 export const deleteChat = (id) => api.delete(`/chats/${id}`);
 
 // MESSAGES
