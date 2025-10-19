@@ -1,5 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchMessages, sendMessageThunk } from "./operations.js";
+import {
+  fetchMessages,
+  sendMessageThunk,
+  updateMessageThunk,
+} from "./operations.js";
 
 const messagesSlice = createSlice({
   name: "messages",
@@ -13,6 +17,16 @@ const messagesSlice = createSlice({
       const { chatId, message } = action.payload;
       if (!state.byChat[chatId]) state.byChat[chatId] = [];
       state.byChat[chatId].push(message);
+    },
+    updateMessage: (state, action) => {
+      const updatedMessage = action.payload;
+      const chatMessages = state.byChat[updatedMessage.chatId];
+      if (chatMessages) {
+        const index = chatMessages.findIndex(
+          (m) => m._id === updatedMessage._id
+        );
+        if (index !== -1) chatMessages[index] = updatedMessage;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -48,8 +62,30 @@ const messagesSlice = createSlice({
         state.isLoading = false;
         state.error = action.error.message;
       });
+
+    //updateMessageThunk
+    builder
+      .addCase(updateMessageThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(updateMessageThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const updatedMessage = action.payload;
+        const chatMessages = state.byChat[updatedMessage.chatId];
+        if (chatMessages) {
+          const index = chatMessages.findIndex(
+            (m) => m._id === updatedMessage._id
+          );
+          if (index !== -1) chatMessages[index] = updatedMessage;
+        }
+      })
+      .addCase(updateMessageThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload || "Failed to update message";
+      });
   },
 });
 
-export const { addMessageToChat } = messagesSlice.actions;
+export const { addMessageToChat, updateMessage } = messagesSlice.actions;
 export const messagesReducer = messagesSlice.reducer;

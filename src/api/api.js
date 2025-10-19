@@ -10,12 +10,14 @@ const api = axios.create({
 // CHATS
 export const getChats = () => api.get("/chats");
 export const createChat = (formData) => api.post("/chats", formData);
-export const updateChat = (id, formData) => api.put(`/chats/${id}`, formData);
+export const updateChat = (id, formData) => api.patch(`/chats/${id}`, formData);
 export const deleteChat = (id) => api.delete(`/chats/${id}`);
 
 // MESSAGES
 export const getMessages = (chatId) => api.get(`/messages/${chatId}`);
 export const sendMessage = (data) => api.post("/messages", data);
+export const updateMessage = (id, text) =>
+  api.patch(`/messages/${id}`, { text });
 
 export const getLastMessageForChat = async (chatId) => {
   const res = await getMessages(chatId);

@@ -14,6 +14,7 @@ import { selectChat, updateLastMessage } from "./redux/chats/slice.js";
 import {
   fetchMessages,
   sendMessageThunk,
+  updateMessageThunk,
 } from "./redux/messages/operations.js";
 import {
   createChatThunk,
@@ -76,6 +77,10 @@ export default function App() {
     dispatch(sendMessageThunk({ chatId: selectedChat._id, text }));
   };
 
+  const handleUpdateMessage = (id, newText) => {
+    dispatch(updateMessageThunk({ messageId: id, text: newText }));
+  };
+
   const handleSelectChat = (chat) => {
     dispatch(selectChat(chat));
     dispatch(fetchMessages(chat._id));
@@ -121,6 +126,7 @@ export default function App() {
         chat={selectedChat}
         messages={messagesByChat || []}
         onSendMessage={handleSendMessage}
+        onUpdateMessage={handleUpdateMessage}
       />
 
       <ChatFuncModal

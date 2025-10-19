@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { getMessages, sendMessage } from "../../api/api.js";
+import { getMessages, sendMessage, updateMessage } from "../../api/api.js";
 
 export const fetchMessages = createAsyncThunk(
   "messages/fetchByChat",
@@ -15,5 +15,19 @@ export const sendMessageThunk = createAsyncThunk(
     const { data } = await sendMessage({ chatId, text });
     dispatch(updateLastMessage({ chatId, message: data }));
     return { chatId, message: data };
+  }
+);
+
+export const updateMessageThunk = createAsyncThunk(
+  "messages/updateMessage",
+  async ({ messageId, text }, { rejectWithValue }) => {
+    try {
+      const { data } = await updateMessage(messageId, text);
+      return data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to update message"
+      );
+    }
   }
 );

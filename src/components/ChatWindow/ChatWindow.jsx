@@ -2,7 +2,7 @@ import Message from "../Message/Message";
 import MessageForm from "../MessageForm/MessageForm.jsx";
 import styles from "./ChatWindow.module.css";
 
-const ChatWindow = ({ chat, messages, onSendMessage }) => {
+const ChatWindow = ({ chat, messages, onSendMessage, onUpdateMessage }) => {
   if (!chat)
     return <div className={styles.empty}>Select a chat to start messaging</div>;
 
@@ -27,7 +27,11 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
 
       <ul className={styles.messages}>
         {messages.map((msg) => (
-          <Message key={msg._id} message={msg} />
+          <Message
+            key={msg._id}
+            message={msg}
+            onUpdate={(id, newText) => onUpdateMessage(id, newText)}
+          />
         ))}
       </ul>
 

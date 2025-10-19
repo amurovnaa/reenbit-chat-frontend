@@ -29,3 +29,19 @@
   color: #777;
   margin-top: 4px;
 }
+.editMessage {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+}
+.editMessageInput {
+  flex: 1;
+  font-size: 14px;
+}
+.btnMessage {
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
