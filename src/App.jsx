@@ -25,6 +25,7 @@ import ChatFuncModal from "./components/ChatFuncModal/ChatFuncModal.jsx";
 import { addMessageToChat } from "./redux/messages/slice.js";
 import { socket } from "./api/api.js";
 import toast, { Toaster } from "react-hot-toast";
+import Loader from "./components/Loader/Loader.jsx";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -103,12 +104,10 @@ export default function App() {
     dispatch(deleteChatThunk(id));
   };
 
-  if (isLoading) return <p>Loading chats...</p>;
-
   return (
     <section className={styles.app}>
       <Toaster position="top-center" />
-
+      {isLoading && <Loader />}
       <ChatList
         chats={chats}
         onSelectChat={handleSelectChat}

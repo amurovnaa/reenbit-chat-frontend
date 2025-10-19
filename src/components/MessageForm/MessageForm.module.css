@@ -1,0 +1,26 @@
+.inputBox {
+  min-width: 100%;
+  padding: 12px 32px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background-color: white;
+}
+.input {
+  border-radius: 12px;
+  min-width: 300px;
+  max-width: 545px;
+  max-height: 100%;
+  background: #fafafa;
+  padding: 8px;
+}
+input:hover,
+input-active {
+  outline-color: #27ae60;
+}
+.button {
+  font-weight: 500;
+  font-size: 14px;
+  color: #27ae60;
+  background: transparent;
+}

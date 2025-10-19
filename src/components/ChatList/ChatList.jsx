@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import ChatItem from "../ChatItem/ChatItem";
 import styles from "./ChatList.module.css";
+import { FiEdit2 } from "react-icons/fi";
+import UserHeader from "../UserHeader/UserHeader.jsx";
 
 const ChatList = ({
   chats = [],
@@ -26,15 +28,21 @@ const ChatList = ({
 
   return (
     <div className={styles.chatList}>
-      <input
-        type="text"
-        placeholder="Search or start new chat"
-        className={styles.search}
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      <button onClick={onCreate} className={styles.createBtn}>
-        + New Chat
+      <UserHeader />
+      <div className={styles.searchWrapper}>
+        <input
+          type="text"
+          placeholder="Search or start new chat"
+          className={styles.search}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <svg className={styles.searchIcon}>
+          <use href="/sprite.svg#icon-search-input"></use>
+        </svg>
+      </div>
+      <button className={styles.newChatBtn} onClick={onCreate}>
+        <FiEdit2 size={24} />
       </button>
       <h3 className={styles.title}>Chats</h3>
       <ul className={styles.list}>

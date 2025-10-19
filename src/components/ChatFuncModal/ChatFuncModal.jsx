@@ -49,7 +49,9 @@ const ChatFuncModal = ({ isOpen, onClose, onSubmit, chat }) => {
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h3>{chat ? "Edit Chat" : "Create New Chat"}</h3>
+        <h3 className={styles.title}>
+          {chat ? "Edit Chat" : "Create New Chat"}
+        </h3>
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.avatarSection}>

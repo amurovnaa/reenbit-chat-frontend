@@ -23,7 +23,7 @@ const ChatItem = ({
       className={`${styles.chatItem} ${isActive ? styles.active : ""}`}
       onClick={onClick}
     >
-      <div>
+      <div className={styles.userInfo}>
         {chat.avatar ? (
           <img
             src={chat.avatar}
@@ -35,16 +35,28 @@ const ChatItem = ({
             {chat.firstName?.[0].toUpperCase() || "?"}
           </div>
         )}
-        <p className={styles.name}>
-          {[chat.firstName, chat.lastName].filter(Boolean).join(" ")}
-          {chat.hasUnread && <span className={styles.unreadIcon}></span>}
-        </p>{" "}
-        <p className={styles.last}>{lastMessage?.text ?? "No messages yet"}</p>
+        <div>
+          <p className={styles.name}>
+            {[chat.firstName, chat.lastName].filter(Boolean).join(" ")}
+            {chat.hasUnread && <span className={styles.unreadIcon}>New</span>}
+          </p>
+
+          <p className={styles.last}>
+            {lastMessage?.text ?? "No messages yet"}{" "}
+          </p>
+        </div>
       </div>
 
-      <div className={styles.info}>
+      <div className={styles.chatInfo}>
         <p className={styles.date}>
-          {new Date(lastMessage?.createdAt || chat.createdAt).toLocaleString()}
+          {new Date(lastMessage?.createdAt || chat.createdAt)
+            .toLocaleDateString("en-US", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+            .replace(/ /g, " ")
+            .toLowerCase()}{" "}
         </p>
         <div className={styles.actions}>
           <FiEdit2
@@ -70,7 +82,9 @@ const ChatItem = ({
           title="Delete Chat"
           onClose={() => setShowConfirm(false)}
         >
-          <p>Are you sure you want to delete this chat?</p>
+          <p className={styles.modalText}>
+            Are you sure you want to delete this chat?
+          </p>
           <div className={styles.modalButtons}>
             <button onClick={handleDelete} className={styles.confirmBtn}>
               Yes
